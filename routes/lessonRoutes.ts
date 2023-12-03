@@ -101,7 +101,7 @@ router.post('/', async (req, res) => {
  *    - 500 Internal Server Error
 */
 
-router.patch('/api/lessons/:id', async (req, res) => {
+router.patch('/:id', async (req, res) => {
   const { id } = req.params;
   const { title, content } = req.body;
 
@@ -158,7 +158,7 @@ router.patch('/api/lessons/:id', async (req, res) => {
  *    - 500 Internal Server Error
 */
 
-router.delete('/api/lessons/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
   // validation for id?
