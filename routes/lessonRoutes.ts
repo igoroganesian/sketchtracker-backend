@@ -54,8 +54,8 @@ router.post('/', async (req, res) => {
 
   if (!title || !content) {
     return res
-            .status(400)
-            .json({ message: 'Title and content are required.' });
+      .status(400)
+      .json({ message: 'Title and content are required.' });
   }
 
   try {
@@ -68,14 +68,114 @@ router.post('/', async (req, res) => {
 
     res.status(201).json(rows[0]);
   } catch (err) {
-    if (typeof (err as { message: unknown }).message === 'string') {
-      console.error('Error:', (err as { message: string }).message);
-      res.status(500).json({ message: (err as { message: string }).message});
+    if (typeof (err as { message: unknown; }).message === 'string') {
+      console.error('Error:', (err as { message: string; }).message);
+      res.status(500).json({ message: (err as { message: string; }).message });
     } else {
       console.error('Unknown Error:', err);
       res.status(500).json({ message: 'An unknown error occured.' });
     }
   }
-})
+});
+
+/** PATCH /api/lessons/:id
+ *
+ * Description:
+ *    Updates specific fields of an existing lesson.
+ *
+ * Parameters:
+ *    - id: Unique identifier of the lesson to update.
+ *
+ * Request Body:
+ *    - Fields that need to be updated (e.g. title, content).
+ *    ex. { "title": "New Title", "content": "New Content" }
+ *
+ * Responses:
+ *    - 200 OK: Successful update.
+ *    Returns the updated lesson object.
+ *
+ *    - 400 Bad Request: If the 'id' is invalid or request body is not as expected.
+ *
+ *    - 404 Not Found: If no lesson with the provided id is found.
+ *
+ *    - 500 Internal Server Error
+*/
+
+router.patch('/api/lessons/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, content } = req.body;
+
+  // add validation
+
+  try {
+    let updateQuery = 'UPDATE lessons SET ';
+    const updateValues = [];
+    if (title !== undefined) {
+      updateValues.push(title);
+      updateQuery += `title = $${updateValues.length}`;
+    }
+    if (content !== undefined) {
+      if (updateValues.length > 0) updateQuery += ', ';
+      updateValues.push(content);
+      updateQuery += `content = $${updateValues.length}`;
+    }
+    updateQuery += ` WHERE id = $${updateValues.length + 1} RETURNING *`;
+
+    if (updateValues.length === 0) {
+      return res
+        .status(400)
+        .json({ message: 'No fields to update were provided.' });
+    }
+
+    const { rows } = await pool.query(updateQuery, [...updateValues, id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Lesson not found.' });
+    }
+
+    res.status(200).json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+/** DELETE /api/lessons/:id
+ *
+ * Description:
+ *    Deletes an existing lesson.
+ *
+ * Parameters:
+ *    - id: Unique identifier of the lesson to delete.
+ *
+ * Responses:
+ *    - 200 OK: Successful deletion
+ *    Returns a message confirming deletion.
+ *
+ *    - 400 Bad Request: If the id is not valid.
+ *
+ *    - 404 Not Found: If no lesson with the provided id is found.
+ *
+ *    - 500 Internal Server Error
+*/
+
+router.delete('/api/lessons/:id', async (req, res) => {
+  const { id } = req.params;
+
+  // validation for id?
+
+  try {
+    const deleteQuery = 'DELETE FROM lessons WHERE id = $1 RETURNING *';
+    const { rows } = await pool.query(deleteQuery, [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Lesson not found.' });
+    }
+
+    res.status(200).json({ message: 'Lesson deleted successfully.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
 
 export default router;
