@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
     res.json(rows);
     // res.json({ message: 'This is the lessons endpoint'});
   } catch (err) {
-    res.status(500).send('Server error');
+    res.status(500).json({ message: (err as { message: string; }).message });
   }
 });
 
