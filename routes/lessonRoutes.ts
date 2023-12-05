@@ -41,7 +41,7 @@ router.get('/', async (req, res) => {
  *    Returns the new lesson object, including its id, title, and content
  *    ex. { "id": 1, "title": "New Lesson Title", "content": "New Lesson Content" }
  *
- *    - 400 Bad Reqeust: If 'title' or 'content' are missing in the request body.
+ *    - 400 Bad Request: If 'title' or 'content' are missing in the request body.
  *    Returns a message indicating that both title and content are required.
  *    ex. { "message": "Title and content are required."}
  *
